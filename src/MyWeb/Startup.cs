@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
+using Microsoft.AspNetCore.Mvc.ViewComponents;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -27,10 +29,12 @@ namespace MyWeb {
             var asmParts = new AssemblyPart(asm);
             services.AddMvc()
                 .ConfigureApplicationPartManager(apm => {
-                    apm.ApplicationParts.Add(asmParts);
+                    // apm.ApplicationParts.Add(asmParts);
                     var library = apm.ApplicationParts.FirstOrDefault(part => part.Name == "MyLibrary");
                     if (library != null) {
-                        // apm.ApplicationParts.Remove(library);
+                        Console.WriteLine("Remove application parts - {0}", library.Name);
+
+                        apm.ApplicationParts.Remove(library);
                     }
                 })
                 .AddNewtonsoftJson();
@@ -43,13 +47,12 @@ namespace MyWeb {
                 app.UseHsts();
             }
 
-            // app.UseHttpsRedirection();
-
-            app.UseRouting(routes => {
-                routes.MapControllers();
-            });
-
             app.UseAuthorization();
+            app.UseMvc(routes => {
+                routes.MapRoute(
+                    name: "default",
+                    template: "{controller}/{action=Index}/{id?}");
+            });
         }
     }
 }
