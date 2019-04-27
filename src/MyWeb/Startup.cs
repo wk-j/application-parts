@@ -6,47 +6,46 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using MyLibrary.Controllers;
 
-namespace MyWeb
-{
-    public class Startup
-    {
-        public Startup(IConfiguration configuration)
-        {
+namespace MyWeb {
+    public class Startup {
+        public Startup(IConfiguration configuration) {
             Configuration = configuration;
         }
 
         public IConfiguration Configuration { get; }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
-        public void ConfigureServices(IServiceCollection services)
-        {
+        public void ConfigureServices(IServiceCollection services) {
+            var asm = typeof(HelloController).Assembly;
+            var asmParts = new AssemblyPart(asm);
             services.AddMvc()
+                .ConfigureApplicationPartManager(apm => {
+                    apm.ApplicationParts.Add(asmParts);
+                    var library = apm.ApplicationParts.FirstOrDefault(part => part.Name == "MyLibrary");
+                    if (library != null) {
+                        // apm.ApplicationParts.Remove(library);
+                    }
+                })
                 .AddNewtonsoftJson();
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-        {
-            if (env.IsDevelopment())
-            {
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env) {
+            if (env.IsDevelopment()) {
                 app.UseDeveloperExceptionPage();
-            }
-            else
-            {
-                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+            } else {
                 app.UseHsts();
             }
 
-            app.UseHttpsRedirection();
+            // app.UseHttpsRedirection();
 
-            app.UseRouting(routes =>
-            {
+            app.UseRouting(routes => {
                 routes.MapControllers();
             });
 
